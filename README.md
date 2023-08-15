@@ -1,4 +1,4 @@
-# Case Study 3 Foodie Fi
+# Case Study #3 Foodie Fi
 
 *Note: All information and data related to the case study were obtained from [here](https://8weeksqlchallenge.com/case-study-3/).*
 ![Screenshot 2023-08-13 at 8 37 39 pm](https://github.com/jef-fortunahamid/CaseStudy3_FoodieFi/assets/125134025/96128d5d-ca8e-4509-8e10-4215e4108337)
