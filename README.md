@@ -376,11 +376,10 @@ WHERE lag_plan_id = 1 AND plan_id = 2;
 ### Part C: Challenge Pauyment Question
 * With this part, I followed along the explanation and debugged the given queries.*
 > The Foodie-Fi team wants you to create a new `payments` table for the year 2020 that includes amounts paid by each customer in the `subscriptions` table with the following requirements:
-
-- monthly payments always occur on the same day of month as the original `start_date` of any monthly paid plan
-- upgrades from basic to monthly or pro plans are reduced by the current paid amount in that month and start immediately
-- upgrades from pro monthly to pro annual are paid at the end of the current billing period and also starts at the end of the month period
-- once a customer churns they will no longer make payments
+> - monthly payments always occur on the same day of month as the original `start_date` of any monthly paid plan
+> - upgrades from basic to monthly or pro plans are reduced by the current paid amount in that month and start immediately
+> - upgrades from pro monthly to pro annual are paid at the end of the current billing period and also starts at the end of the month period
+> - once a customer churns they will no longer make payments
 
 Example outputs for this table might look like the following:
 | customer_id	| plan_id	| plan_name	| payment_date	| amount	| payment_order | 
@@ -404,4 +403,211 @@ Example outputs for this table might look like the following:
 | 7	| 2	| pro monthly	| 2020-11-22	| 19.90	| 11| 
 | 7	| 2	| pro monthly	| 2020-12-22	| 19.90	| 12| 
 
+*First Explanation*
+```sql
+SELECT
+    customer_id
+  , plan_id
+  , start_date
+  , LEAD(plan_id) OVER(
+        PARTITION BY customer_id
+        ORDER BY start_date
+      ) AS lead_plan_id
+  , LEAD(start_date) OVER (
+        PARTITION BY customer_id
+        ORDER BY start_date
+      ) AS lead_start_date
+FROM foodie_fi.subscriptions
+WHERE DATE_PART('year', start_date) = 2020
+  AND plan_id != 0
+  AND customer_id IN (1, 2, 7, 11, 13, 15, 16, 18, 19, 25, 39);
+```
+![image](https://github.com/jef-fortunahamid/CaseStudy3_FoodieFi/assets/125134025/7021340f-bc31-428b-a7a4-b7715c24daad)
 
+*Second Explanation*
+```sql
+WITH lead_plan_start AS (
+  SELECT
+      customer_id
+    , plan_id
+    , start_date
+    , LEAD(plan_id) OVER(
+          PARTITION BY customer_id
+          ORDER BY start_date
+        ) AS lead_plan_id
+    , LEAD(start_date) OVER (
+          PARTITION BY customer_id
+          ORDER BY start_date
+        ) AS lead_start_date
+  FROM foodie_fi.subscriptions
+  WHERE DATE_PART('year', start_date) = 2020
+    AND plan_id != 0
+)
+SELECT
+    plan_id
+  , lead_plan_id
+  , COUNT(*) AS transition_count
+FROM lead_plan_start
+GROUP BY
+    plan_id
+  , lead_plan_id
+ORDER BY 
+    plan_id
+  , lead_plan_id;
+```
+![image](https://github.com/jef-fortunahamid/CaseStudy3_FoodieFi/assets/125134025/310e36bd-58fa-4a3b-a6bf-438f2b0b8306)
+
+*Third Explanation*
+The next interim step is to start interpreting the above dataset as follows:
+
+- Basic monthly plan customers can move freely to all states
+
+| plan_id | lead_plan_id | transition_count |
+| --- | --- | --- |
+| 1 | 2 | 163 |
+| 1 | 3 | 88 |
+| 1 | 4 | 63 |
+| 1 | null | 224 |
+- Monthly pro customers only seem to move to annual plan or churn states
+
+| plan_id | lead_plan_id | transition_count |
+| --- | --- | --- |
+| 2 | 3 | 70 |
+| 2 | 4 | 83 |
+| 2 | null | 326 |
+- No annual customers or churn customers move to another plan in 2020
+
+*Fourth Explanation*
+```sql
+WITH lead_plans AS (
+  SELECT
+      customer_id
+    , plan_id
+    , start_date
+    , LEAD(plan_id) OVER(
+          PARTITION BY customer_id
+          ORDER BY start_date
+          ) AS lead_plan_id
+    , LEAD(start_date) OVER(
+          PARTITION BY customer_id
+          ORDER BY start_date
+          ) AS lead_start_date
+  FROM foodie_fi.subscriptions
+  WHERE DATE_PART('year', start_date) = 2020
+    AND plan_id != 0
+),
+case_1 AS (
+  SELECT
+      customer_id
+    , plan_id
+    , start_date
+    , DATE_PART('month', AGE('2020-12-31'::DATE, start_date))::INT AS month_diff
+  FROM lead_plans
+  WHERE lead_plan_id IS NULL
+    AND plan_id NOT IN (3, 4)
+),
+case_1_payments AS (
+  SELECT
+      customer_id
+    , plan_id
+    , (start_date + GENERATE_SERIES(0, month_diff) * INTERVAL '1 month')::DATE as start_date
+  FROM case_1
+),
+case_2 AS (
+  SELECT
+      customer_id
+    , plan_id
+    , start_date
+    , DATE_PART('month', AGE(lead_start_date - 1, start_date))::INT AS month_diff
+  FROM lead_plans
+  WHERE lead_plan_id = 4
+),
+case_2_payments AS (
+  SELECT
+      customer_id
+    , plan_id
+    , (start_date + GENERATE_SERIES(0, month_diff) * INTERVAL '1 month') AS start_date
+  FROM case_2
+),
+case_3 AS (
+  SELECT
+      customer_id
+    , plan_id
+    , start_date
+    , DATE_PART('month', AGE(lead_start_date - 1, start_date))::INT AS month_diff
+  FROM lead_plans
+  WHERE plan_id = 1 
+    AND lead_plan_id IN (2,3)
+),
+case_3_payments AS (
+  SELECT
+      customer_id
+    , plan_id
+    , (start_date + GENERATE_SERIES(0, month_diff) * INTERVAL '1 month') AS start_date
+  FROM case_3
+),
+case_4 AS (
+  SELECT
+      customer_id
+    , plan_id
+    , start_date
+    , DATE_PART('month', AGE(lead_start_date - 1, start_date))::INT AS month_diff
+  FROM lead_plans
+  WHERE plan_id = 2
+    AND lead_plan_id = 3
+),
+case_4_payments AS (
+  SELECT
+      customer_id
+    , plan_id
+    , (start_date + GENERATE_SERIES(0, month_diff) * INTERVAL '1 month')::DATE AS start_date
+  FROM case_4
+),
+case_5_payments AS (
+  SELECT
+      customer_id
+    , plan_id
+    , start_date
+  FROM lead_plans
+  WHERE plan_id = 3
+),
+union_output AS (
+  SELECT *
+  FROM case_1_payments
+UNION ALL 
+  SELECT *
+  FROM case_2_payments
+UNION ALL 
+  SELECT *
+  FROM case_3_payments
+UNION ALL 
+  SELECT *
+  FROM case_4_payments
+UNION ALL
+  SELECT *
+  FROM case_5_payments
+)
+SELECT
+    customer_id
+  , plans.plan_id
+  , plans.plan_name
+  , start_date AS payment_date
+  , CASE
+      WHEN union_output.plan_id IN (2, 3) AND LAG(union_output.plan_id) OVER w = 1
+      THEN plans.price - 9.90
+      ELSE plans.price
+      END AS amount
+  , RANK() OVER w AS payment_order
+FROM union_output
+
+INNER JOIN foodie_fi.plans
+  ON union_output.plan_id = plans.plan_id
+
+WHERE customer_id IN (1, 2, 7, 11, 13, 15, 16, 18, 19, 25, 39)
+
+WINDOW w AS (
+    PARTITION BY customer_id
+    ORDER BY start_date
+);
+```
+![image](https://github.com/jef-fortunahamid/CaseStudy3_FoodieFi/assets/125134025/fae93c17-ef70-4a4b-982a-ac955cef6aa5)
