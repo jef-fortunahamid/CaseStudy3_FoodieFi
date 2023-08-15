@@ -25,6 +25,7 @@ Danny's vision for Foodie-Fi is data-driven. He wants to make informed decisions
 - Conditional Logic (`CASE WHEN`)
 - Date Functions (`DATE_TRUNC`, `DATE_PART`, `AGE`, `EXTRACT`)
 - String Functions (`STRING_AGG`, `TO_CHAR`)
+- Set Operation (`UNION ALL`)
 
 ## Questions and Solutions
 ### Part A: Customer Journey
