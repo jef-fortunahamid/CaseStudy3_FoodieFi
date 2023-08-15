@@ -3,12 +3,19 @@
 *Note: All information and data related to the case study were obtained from [here](https://8weeksqlchallenge.com/case-study-3/).*
 ![Screenshot 2023-08-13 at 8 37 39 pm](https://github.com/jef-fortunahamid/CaseStudy3_FoodieFi/assets/125134025/96128d5d-ca8e-4509-8e10-4215e4108337)
 
-##Business Task
+## Business Task
+Spotting a niche in the market, Danny launched "Foodie-Fi" in 2020, a streaming service dedicated solely to food-related content. Similar to Netflix, but exclusively for cooking enthusiasts, it offers monthly and annual subscriptions for unlimited access to unique food videos globally.
+Danny's vision for Foodie-Fi is data-driven. He wants to make informed decisions about investments and feature additions based on data. He has provided the data design and descriptions for the Foodie-Fi database. Our objective is to focus on two specific tables and also craft a new table for the team. When exploring the data and addressing the study's questions, it's essential to reference the "foodie_fi" database schema in the SQL scripts.
 
 ## Entity Relationship Diagram
 ![image](https://github.com/jef-fortunahamid/CaseStudy3_FoodieFi/assets/125134025/3800b43d-1dc0-4e8e-8d12-829dc5bbcc0f)
 
 ## General Insights
+- *Customer Journey:* The queries provided a detailed onboarding journey of 10 sample customers, showcasing their plan subscriptions and respective start dates. This helps in understanding the customer's lifecycle and their interactions with the Foodie-Fi platform.
+- *Subscription Analysis:* Insights were derived about the total number of unique customers of Foodie-Fi, the monthly distribution of trial plan start dates, and a breakdown of plan subscriptions after 2020. This provides a clear picture of the platform's growth and customer preferences.
+- *Churn Analysis:* Detailed insights were provided into customer churn, both overall and post-free trial. This is crucial for understanding customer retention and identifying potential areas of improvement in the customer experience.
+- *Plan Transition:* The analysis provided a snapshot of the plan distribution at the end of 2020, the number of customers who upgraded to an annual plan in 2020, and the average duration for customers to upgrade to an annual plan. This helps in understanding customer loyalty and preferences.
+- *Payment Analysis:* A comprehensive payments table for 2020 was created, capturing payment dates, amounts, and the sequence of payments for each customer. This is essential for revenue tracking and financial analysis.
 
 ## Key SQL Syntax and Functions
 - Joins (`INNER JOIN`)
