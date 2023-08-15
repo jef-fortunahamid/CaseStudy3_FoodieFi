@@ -62,7 +62,7 @@ ORDER BY subs.customer_id;
 
 Comparing the two table results, the second table provides a clearer picture of the 'Customer's Journey'. No need to individually inspect each customer separately.
 
-Throughout this case study, I provided alternative solutions to some questions. In SQL, there are a lot of approaches you can tackle a given problem; jthe key is identifying the most optimised query for your SQL environment.
+Throughout this case study, I provided alternative solutions to some questions. In SQL, there are a lot of approaches you can tackle a given problem; the key is identifying the most optimised query for your SQL environment.
 
 ### Part B: Data Analysis Questions
 > 1. How many customers has Foodie-Fi ever had?
